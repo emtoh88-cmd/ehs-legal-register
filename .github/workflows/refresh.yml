@@ -9,11 +9,11 @@ on:
         description: "Check only the first N instruments (0 = all)"
         default: "5"
       resolve:
-        description: "Rebuild the citation → SSO ID map"
+        description: "Rebuild the citation to SSO ID map"
         type: boolean
         default: false
       force:
-        description: "Ignore the 3–7am SGT window (testing only)"
+        description: "Ignore the 3-7am SGT window (testing only)"
         type: boolean
         default: true
 
@@ -39,14 +39,30 @@ jobs:
         run: pip install --quiet httpx selectolax
 
       - name: Check SSO for amendments
+        env:
+          LIMIT: ${{ inputs.limit }}
+          RESOLVE: ${{ inputs.resolve }}
+          FORCE: ${{ inputs.force }}
         run: |
-          python sso_refresh.py \
-            ${{ inputs.limit != '' && inputs.limit != '0' && format('--limit {0}', inputs.limit) || '' }} \
-            ${{ inputs.resolve && '--resolve' || '' }} \
-            ${{ inputs.force && '--force' || '' }}
+          ARGS=""
+          if [ -n "$LIMIT" ] && [ "$LIMIT" != "0" ]; then ARGS="$ARGS --limit $LIMIT"; fi
+          if [ "$RESOLVE" = "true" ]; then ARGS="$ARGS --resolve"; fi
+          if [ "$FORCE" = "true" ]; then ARGS="$ARGS --force"; fi
+          echo "Running: sso_refresh.py $ARGS"
+          python sso_refresh.py $ARGS
 
       - name: Show the report on this run's page
         if: always()
         run: cat refresh-report.md >> "$GITHUB_STEP_SUMMARY" || true
 
-      -
+      - name: Commit if anything changed
+        run: |
+          git config user.name  "register-bot"
+          git config user.email "register-bot@users.noreply.github.com"
+          git add register.json refresh-report.md
+          if git diff --cached --quiet; then
+            echo "No changes."
+          else
+            git commit -m "Register refresh $(TZ=Asia/Singapore date +%Y-%m-%d)"
+            git push
+          fi
