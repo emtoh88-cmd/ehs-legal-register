@@ -1,0 +1,52 @@
+name: Refresh legal register
+
+on:
+  schedule:
+    - cron: "30 20 * * *"      # 04:30 Singapore time
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Check only the first N instruments (0 = all)"
+        default: "5"
+      resolve:
+        description: "Rebuild the citation → SSO ID map"
+        type: boolean
+        default: false
+      force:
+        description: "Ignore the 3–7am SGT window (testing only)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install --quiet httpx selectolax
+
+      - name: Check SSO for amendments
+        run: |
+          python sso_refresh.py \
+            ${{ inputs.limit != '' && inputs.limit != '0' && format('--limit {0}', inputs.limit) || '' }} \
+            ${{ inputs.resolve && '--resolve' || '' }} \
+            ${{ inputs.force && '--force' || '' }}
+
+      - name: Show the report on this run's page
+        if: always()
+        run: cat refresh-report.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      -
