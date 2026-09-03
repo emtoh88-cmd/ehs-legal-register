@@ -37,7 +37,9 @@ TIMEOUT  = 30
 UA       = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
             "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 
-ACT_ID = re.compile(r"^[A-Z]{2,12}\d{4}$")
+# SSO's own short codes aren't consistently all-caps (e.g. Employment Act 1968
+# is "EmA1968", not "EMA1968") -- verified against the live site.
+ACT_ID = re.compile(r"^[A-Za-z]{2,12}\d{4}$")
 RE_STATUS = re.compile(r"(?:Current|Historical)\s+version\s*as at\s*(\d{1,2}\s+\w{3}\s+\d{4})", re.I)
 RE_AMEND  = re.compile(r"Amended by\s*(S\s*\d+/\d{4}|Act\s*\d+\s*of\s*\d{4})", re.I)
 RE_VALID  = re.compile(r"ValidDate=(\d{8})")
