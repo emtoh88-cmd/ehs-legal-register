@@ -1,16 +1,14 @@
-# Register refresh — 2026-09-03 16:40 SGT
+# Register refresh — 2026-09-03 17:04 SGT
 
 No version changes detected.
 
-## 55 citations have no SSO link yet
+## 49 citations have no SSO link yet
 
 Add an `sso` path by hand in register.json, e.g. `"sso": "/SL/WSHA2006-RG1"`.
 
 - Arms and Explosives (Explosive Precursors) Rules 2007
 - Arms and Explosives (Explosives) Rules
 - Biological Agents and Toxins (COVID-19 Research Laboratory — Exemption) Regulations 2020
-- Biological Agents and Toxins (Exemption) Regulations 2009
-- Biological Agents and Toxins (Proficiency Testing) Regulations 2008
 - Biological Agents and Toxins (Transportation) Regulations
 - Building Control Regulations
 - Building Maintenance and Strata Management (Lift, Escalator and Building Maintenance) Regulations 2016
@@ -46,7 +44,9 @@ Add an `sso` path by hand in register.json, e.g. `"sso": "/SL/WSHA2006-RG1"`.
 - Hazardous Waste (Control of Export, Import and Transit) Regulations
 - Hydrogen Cyanide (Fumigation) Regulations
 - Infrastructure Protection (Special Developments and Special Infrastructures) Regulations 2018
-- …and 15 more
+- Maritime and Port Authority of Singapore (Dangerous Goods, Petroleum and Explosives) Regulations 2005
+- Maritime and Port Authority of Singapore (Port) Regulations
+- …and 9 more
 
 ---
 
