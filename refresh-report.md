@@ -1,8 +1,8 @@
-# Register refresh — 2026-09-03 16:19 SGT
+# Register refresh — 2026-09-03 16:40 SGT
 
 No version changes detected.
 
-## 63 citations have no SSO link yet
+## 55 citations have no SSO link yet
 
 Add an `sso` path by hand in register.json, e.g. `"sso": "/SL/WSHA2006-RG1"`.
 
@@ -15,15 +15,7 @@ Add an `sso` path by hand in register.json, e.g. `"sso": "/SL/WSHA2006-RG1"`.
 - Building Control Regulations
 - Building Maintenance and Strata Management (Lift, Escalator and Building Maintenance) Regulations 2016
 - Carbon Pricing (Carbon Tax and Carbon Credits and Registries) Regulations 2020
-- Chemical Weapons (Prohibition) Act 2000
-- Chemical Weapons (Prohibition) Regulations 2007
-- Control of Vectors and Pesticides (Registration, Licensing and Certification) Regulations
-- Control of Vectors and Pesticides Act 1998
-- COVID-19 (Temporary Measures) Act 2020
 - District Cooling (Declaration of Service Area) Notification
-- District Cooling (Exemption from Section 7(3) and (5)) Regulations 2008
-- District Cooling Act 2001
-- Employment Act 1968, Part IV
 - Energy Conservation (Greenhouse Gas Measurement and Reporting) Regulations 2017
 - Energy Conservation (Section 26B Exemption) Order 2020
 - Environmental Protection and Management (Regulated Goods — Exemption) Order 2022
@@ -46,7 +38,15 @@ Add an `sso` path by hand in register.json, e.g. `"sso": "/SL/WSHA2006-RG1"`.
 - Environmental Public Health (Water Suitable for Drinking) (No. 2) Regulations 2019
 - Fire Safety (Fire Certificate) (Designated Buildings) Order 2020
 - Fire Safety (Fire Safety Engineers) Regulations 2004
-- …and 23 more
+- Fire Safety (Fire Safety Engineers)(Code of Professional Conduct and Ethics) Regulations 2004
+- Fire Safety (Premises Requiring Fire Safety Manager and Company Emergency Response Team) Notification 2020
+- Fire Safety (Registered Inspectors) (Code of Professional Conduct and Ethics) Regulations
+- Fire Safety (Registered Inspectors) Regulations
+- Fire Safety (Regulated Fire Safety Products) Regulations 2020
+- Hazardous Waste (Control of Export, Import and Transit) Regulations
+- Hydrogen Cyanide (Fumigation) Regulations
+- Infrastructure Protection (Special Developments and Special Infrastructures) Regulations 2018
+- …and 15 more
 
 ---
 
