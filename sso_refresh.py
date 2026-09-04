@@ -164,10 +164,12 @@ def refresh(reg, args, log):
             e["amendments"] = amendments or e.get("amendments", [])
             e["checked"] = sgt_now().date().isoformat()
 
-            if prev_v and version and version != prev_v:
-                changed.append({"citation": e["citation"], "from": prev_v,
-                                "to": version, "new": new_a})
-            elif not prev_v:
+            # SSO's "Current version as at [date]" reflects the date the page was
+            # viewed, not the date of the last amendment -- it ticks forward on
+            # every run regardless of whether anything changed. So a version-date
+            # mismatch alone is not a real change; only a new entry in the
+            # amendments list is.
+            if not prev_v:
                 pass                                  # first run: baseline, not a change
             elif new_a:
                 changed.append({"citation": e["citation"], "from": prev_v,
