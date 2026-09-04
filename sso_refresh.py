@@ -94,17 +94,31 @@ def resolve_ids(client, reg, log):
     hit = 0
     for act in acts:
         try:
-            html = get(client, f"/Act/{act}?ViewType=Sl")
+            pages = [get(client, f"/Act/{act}?ViewType=Sl")]
         except Exception as ex:
             log(f"  ! {act}: {ex}")
             continue
-        for node in HTMLParser(html).css("a[href^='/SL/']"):
-            title = (node.text() or "").strip()
-            href = node.attributes.get("href", "").split("?")[0]
-            entry = by_norm.get(norm(title))
-            if entry and not entry.get("sso"):
-                entry["sso"] = href
-                hit += 1
+        # SSO paginates SL listings at 20/page -- fetch the rest or silently
+        # lose every citation past the first page for any Act with more.
+        m = re.search(r"of (\d+)\s*</span>", pages[0])
+        total_pages = int(m.group(1)) if m else 1
+        for page_index in range(1, total_pages):
+            try:
+                pages.append(get(
+                    client,
+                    f"/Act/{act}?DocType=Act&ViewType=Sl&PageIndex={page_index}&PageSize=20",
+                ))
+            except Exception as ex:
+                log(f"  ! {act} page {page_index}: {ex}")
+
+        for html in pages:
+            for node in HTMLParser(html).css("a[href^='/SL/']"):
+                title = (node.text() or "").strip()
+                href = node.attributes.get("href", "").split("?")[0]
+                entry = by_norm.get(norm(title))
+                if entry and not entry.get("sso"):
+                    entry["sso"] = href
+                    hit += 1
 
     unresolved = [e["citation"] for e in reg["index"] if not e.get("sso")]
     log(f"  matched {hit} SL; {len(unresolved)} still unresolved")
