@@ -237,7 +237,7 @@ function match(r){
   var g=ST.tab==='std'?(r.group||'Other'):((CAT[r.citation]&&CAT[r.citation].cat)||'Uncategorised');
   if(ST.cat&&g!==ST.cat) return false;
   if(ST.ap){var v=dec(r).v; if(ST.ap==='?'?!!v:v!==ST.ap) return false;}
-  if(ST.q){var h=(r.citation+' '+(r.ref||'')+' '+(r.agency||'')+' '+g).toLowerCase(); if(h.indexOf(ST.q)<0) return false;}
+  if(ST.q){var h=((r.citation||r.title||'')+' '+(r.ref||'')+' '+(r.agency||'')+' '+g).toLowerCase(); if(h.indexOf(ST.q)<0) return false;}
   return true;
 }
 
@@ -254,7 +254,7 @@ function renderRows(rows,isStd){
         path=isStd?(r.agency||''):((CAT[r.citation]&&(CAT[r.citation].sub||CAT[r.citation].cat))||'Uncategorised');
     return '<div class="row">'+
       '<div class="cit"><div class="path">'+esc(path.replace(/^\d+(\.\d+)?\s*/,''))+'</div>'+
-        (isStd?esc(r.citation):'<a href="'+ssoHref(r)+'" target="_blank" rel="noopener">'+esc(r.citation)+'</a>')+'</div>'+
+        (isStd?esc(r.title):'<a href="'+ssoHref(r)+'" target="_blank" rel="noopener">'+esc(r.citation)+'</a>')+'</div>'+
       '<div class="ref">'+(r.ref?'<b>'+esc(r.ref)+'</b>':(isStd?esc(r.agency||''):''))+'</div>'+
       '<div><div class="seg">'+segHTML(k,d.v)+'</div>'+
         (d.v?'<textarea class="note" rows="1" data-n="'+esc(k)+'" placeholder="Justification / control reference">'+esc(d.note)+'</textarea>':'')+
@@ -329,12 +329,11 @@ function sheetFromRows(rows,links,linkCol){
   return ws;
 }
 function buildIndexSheet(){
-  var rows=[['Citation','Link to Legislation','Authorising Act','Category','Authority','Applicability','Justification']];
+  var rows=[['Citation','Link to Legislation','Authorising Act','Category','Authority']];
   var links=[];
   DATA.index.forEach(function(r){
     var g=((CAT[r.citation]&&CAT[r.citation].cat)||'').replace(/^\d+(\.\d+)?\s*/,'');
-    var d=dec(r);
-    rows.push([r.citation,r.ref||'',r.authorising_act||'',g,r.authority||'',apLabel(d.v),d.note||'']);
+    rows.push([r.citation,r.ref||'',r.authorising_act||'',g,r.authority||'']);
     links.push(ssoHref(r));
   });
   return sheetFromRows(rows,links,1);
