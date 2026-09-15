@@ -36,7 +36,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install --quiet httpx selectolax
+        run: pip install --quiet httpx selectolax python-docx
 
       - name: Check SSO for amendments
         env:
@@ -51,9 +51,20 @@ jobs:
           echo "Running: sso_refresh.py $ARGS"
           python sso_refresh.py $ARGS
 
+      - name: Apply any confirmed changes to the Change log
+        run: python generate_update_summary.py --apply
+
       - name: Show the report on this run's page
         if: always()
         run: cat refresh-report.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload the update summary, if one was generated
+        uses: actions/upload-artifact@v4
+        with:
+          name: update-summary-${{ github.run_id }}
+          path: reports/update-summary-*.docx
+          if-no-files-found: ignore
+          retention-days: 90
 
       - name: Commit if anything changed
         run: |
