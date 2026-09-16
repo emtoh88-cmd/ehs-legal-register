@@ -27,7 +27,7 @@ Usage:
 Respects the same SSO ToS window (3am-7am SGT) as sso_refresh.py; --force is for a
 small manual test only.
 """
-import argparse, json, re, time
+import argparse, html, json, re, time
 from datetime import datetime, timezone, timedelta
 
 import httpx
@@ -77,8 +77,9 @@ def quarter_of(date_iso):
     return f"{y}-{(int(m) - 1) // 3 + 1}Q"
 
 
-def clean_title(html_title):
-    return re.sub(r"\s*-\s*Singapore Statutes Online\s*$", "", html_title or "").strip()
+def clean_title(page_title):
+    t = re.sub(r"\s*-\s*Singapore Statutes Online\s*$", "", page_title or "").strip()
+    return html.unescape(t)
 
 
 def parse_timeline(html):
