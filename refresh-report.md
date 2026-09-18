@@ -1,20 +1,6 @@
-# Register refresh — 2026-09-18 06:58 SGT
+# Register refresh — 2026-09-19 06:44 SGT
 
 No version changes detected.
-
-## 11 could not be checked
-
-- Air Navigation (101 — Unmanned Aircraft Operations) Regulations 2019 — The read operation timed out
-- Arms and Explosives Act 1913 — The read operation timed out
-- Biological Agents and Toxins (Exemption) Regulations 2009 — The read operation timed out
-- Biological Agents and Toxins (Proficiency Testing) Regulations 2008 — The read operation timed out
-- Biological Agents and Toxins (Transportation) Regulations — The read operation timed out
-- Electric Vehicles Charging (Trials and Special Uses) (General) Rules 2023 — The read operation timed out
-- Environmental Public Health (Crematoria) Regulations — The read operation timed out
-- Environmental Public Health (Declaration of DPWCS Area) Notification 2020 — The read operation timed out
-- Environmental Public Health (Excluded Cleaning Work) Notification 2014 — The read operation timed out
-- Environmental Public Health (Exemption) Regulations 2011 — The read operation timed out
-- Environmental Public Health (Funeral Parlours) Regulations — The read operation timed out
 
 ## 8 citations have no SSO link yet
 
