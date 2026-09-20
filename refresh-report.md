@@ -1,6 +1,23 @@
-# Register refresh — 2026-09-20 06:23 SGT
+# Register refresh — 2026-09-21 06:36 SGT
 
 No version changes detected.
+
+## 14 could not be checked
+
+- Energy Conservation (Energy Management Practices for Transport Facility Operators) Regulations 2013 — The read operation timed out
+- Environmental Public Health (Public Cleansing) Regulations — The read operation timed out
+- Environmental Public Health (Specified Construction Sites) Order 2021 — The read operation timed out
+- Environmental Public Health (Specified Construction Sites) Regulations 2021 — The read operation timed out
+- Environmental Public Health (Specified Premises) Regulations 2021 — The read operation timed out
+- Fire Safety (Alarm Monitoring Services) Regulations 2020 — The read operation timed out
+- Fire Safety (Building and Pipeline Fire Safety) Regulations — The read operation timed out
+- Fire Safety (Emergency Response Plan) Regulations — The read operation timed out
+- Fire Safety (Fire Certificate) (Designated Buildings) Order 2020 — The read operation timed out
+- Fire Safety (Fire Safety Managers) Regulations — The read operation timed out
+- Fire Safety (Flammable Refrigerants - Exemption) Order 2013 — The read operation timed out
+- Fire Safety (Installation of Electric Vehicle Charging Stations — Exemption) Order 2022 — The read operation timed out
+- Fire Safety (Petroleum and Flammable Materials - Exemption) Order — The read operation timed out
+- Fire Safety (Premises Requiring Emergency Response Plan) Notification 2020 — The read operation timed out
 
 ## 8 citations have no SSO link yet
 
