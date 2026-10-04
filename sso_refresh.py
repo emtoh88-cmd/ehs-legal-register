@@ -21,7 +21,7 @@ import argparse, json, os, re, sys, time, unicodedata
 from datetime import datetime, timezone, timedelta
 
 import httpx
-from selectolax.parser import HTMLParser
+from selectolax.lexbor import LexborHTMLParser as HTMLParser
 
 SGT      = timezone(timedelta(hours=8))
 BASE     = "https://sso.agc.gov.sg"
