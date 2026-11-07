@@ -2,8 +2,8 @@
 
 A workout logger that watches you through the camera. Point a phone or laptop
 camera at the person exercising. RepSight recognises the movement, counts reps
-(or times holds) and logs each finished set to the current workout. You can
-then add weights, edit counts and save the workout to your history.
+(or times holds), reads the weight being lifted and logs each finished set to
+the current workout. You can edit anything and save the workout to your history.
 
 Everything runs in the browser. Video never leaves the device. Pose tracking
 uses Google's MediaPipe Pose Landmarker (WebAssembly/WebGPU), and workouts are
@@ -35,6 +35,37 @@ saved in the browser's local storage.
    Settings), or when 3 reps of a different exercise show up. A rest timer then
    runs until the next set starts.
 
+## Weight scanning
+
+When a loaded exercise (curls, squats, overhead press) is recognised, RepSight
+starts looking for the weight while you do your reps. It uses the pose skeleton
+to crop the places a weight can be: your hands for dumbbells, and the bar ends
+(or the bar on your back when you're side-on) for plates.
+
+| Equipment         | What's read                         | Logged as                         |
+|-------------------|-------------------------------------|-----------------------------------|
+| Dumbbell / kettlebell | the number on the head          | weight of one dumbbell ("each")   |
+| Barbell           | the number on the plates            | bar + plates on both sides ("total"). Bar weight is a setting |
+| Nothing found     | n/a                                 | your last weight for that exercise ("Last time"), or blank |
+
+Two readers, chosen in Settings:
+
+- **On this device** (default): Tesseract OCR runs in the browser. It's free and
+  no image leaves the phone. It needs a printed number the camera can see, so
+  it works best with the camera at 1–2 m and the label facing it.
+- **Claude vision**: sends one camera frame per set to Claude with your own
+  Anthropic API key. It also handles hex dumbbells, colour-coded competition
+  plates and stacks of plates without readable numbers. The key is stored only
+  in your browser. Each set costs about a cent.
+
+A reading has to agree across at least two frames before it's used, and each
+row is tagged **Scanned**, **Last time** or left blank, so you can see where a
+weight came from. Typing over it is always allowed.
+
+**Scan weight** button: with the camera on, hold the label up to the middle of
+the frame. With the camera off, it opens the phone camera or photo picker. The
+result is used for the current or next set.
+
 ## Run it
 
 The camera only works on a secure page (HTTPS or `localhost`).
@@ -61,11 +92,18 @@ npm test        # node --test, no dependencies
 
 The tests drive the recogniser with synthetic skeletons (`synth.js`). They
 check rep counts for every exercise, alternating curls, plank timing,
-back-to-back sets, idle movement, half reps and missing landmarks.
+back-to-back sets, idle movement, half reps and missing landmarks. Weight tests
+cover OCR slips ("2O KG", "451BS"), noise rejection, voting, crop placement,
+and dumbbell vs. barbell totals.
+
+In the browser, the demos draw labelled equipment, so the curl, squat and press
+demos run the real OCR end to end (12 kg dumbbells, 60 kg and 40 kg barbells).
 
 ## Files
 
 - `index.html`, `styles.css`: app shell
 - `app.js`: camera and video pipeline, overlay, logbook, history, settings
 - `detect.js`: exercise recognition and rep counting (pure, testable)
+- `weights.js`: weight text parsing, voting, crop regions, plate maths (pure, testable)
+- `scanner.js`: OCR and Claude vision readers
 - `synth.js`: synthetic poses for tests and the demo

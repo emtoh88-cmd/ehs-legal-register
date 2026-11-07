@@ -37,6 +37,22 @@
       <select id="set-model"><option value="lite">Fast (phones)</option><option value="full">Accurate (laptops)</option></select>
     </label>
     <label class="check"><input type="checkbox" id="set-sound"> Beep on each rep</label>
+    <label>Weight scanning
+      <select id="set-scan">
+        <option value="ocr">On this device (reads printed numbers)</option>
+        <option value="claude">Claude vision (your API key)</option>
+        <option value="off">Off</option>
+      </select>
+    </label>
+    <label>Empty bar weight
+      <select id="set-bar"><option value="20">20 kg Olympic bar</option><option value="15">15 kg bar</option><option value="20.4116">45 lb bar</option><option value="10">10 kg technique bar</option><option value="7">7 kg EZ bar</option></select>
+    </label>
+    <div class="key-row" id="key-row" hidden>
+      <label>Anthropic API key
+        <input type="password" id="set-key" autocomplete="off" spellcheck="false" placeholder="sk-ant-…">
+      </label>
+      <p class="hint">Claude vision reads hex dumbbells, colour-coded plates and plate stacks that have no clear printed number. The key is stored only in this browser and sent only to Anthropic. Each set sends one camera frame, which costs about a cent.</p>
+    </div>
   </section>
 
   <!-- TRAIN -->
@@ -46,6 +62,7 @@
       <canvas id="overlay"></canvas>
       <div class="hud-top">
         <span class="chip" id="hud-exercise" data-state="idle">No exercise yet</span>
+        <span class="chip weight" id="hud-weight" hidden></span>
         <span class="hud-status" id="hud-status">Start the camera, step back until your whole body is in view, and start moving.</span>
       </div>
       <div class="hud-count">
@@ -67,6 +84,8 @@
         </select>
         <button class="btn" id="demo-btn">Run demo</button>
       </span>
+      <button class="btn" id="scan-btn" title="With the camera on, hold the weight's label up to the middle of the frame. Otherwise, take or choose a photo of it.">Scan weight</button>
+      <input type="file" id="photo-input" accept="image/*" capture="environment" hidden>
       <button class="btn danger" id="stop-btn" hidden>Stop</button>
     </div>
     <p class="notice" id="notice" hidden></p>
