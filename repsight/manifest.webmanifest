@@ -1,0 +1,10 @@
+{
+  "name": "RepSight",
+  "short_name": "RepSight",
+  "description": "Workout logger that recognises exercises and counts reps from your camera.",
+  "start_url": "./index.html#train",
+  "display": "standalone",
+  "background_color": "#14171c",
+  "theme_color": "#14171c",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

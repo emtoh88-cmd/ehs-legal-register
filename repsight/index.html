@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RepSight</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#14171c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span>RepSight</div>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#train" data-tab="train">Train</a>
+      <a href="#history" data-tab="history">History</a>
+      <a href="#exercises" data-tab="exercises">Exercises</a>
+    </nav>
+    <button class="icon-btn" id="settings-btn" aria-label="Settings" aria-expanded="false">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm7.4-2.5.1-1-.1-1 2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9c-.6.3-1.2.6-1.7 1l-2.5-1-2 3.5L6.6 11l-.1 1 .1 1-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1L11 21h4l.4-2.9c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5-2.2-1.6Z"/></svg>
+    </button>
+  </header>
+
+  <section class="settings" id="settings" hidden>
+    <label>Units
+      <select id="set-unit"><option value="kg">kg</option><option value="lb">lb</option></select>
+    </label>
+    <label>End set after
+      <select id="set-idle"><option value="4">4 s still</option><option value="6">6 s still</option><option value="10">10 s still</option></select>
+    </label>
+    <label>Tracking model
+      <select id="set-model"><option value="lite">Fast (phones)</option><option value="full">Accurate (laptops)</option></select>
+    </label>
+    <label class="check"><input type="checkbox" id="set-sound"> Beep on each rep</label>
+  </section>
+
+  <!-- TRAIN -->
+  <main id="view-train" class="view">
+    <div class="stage" id="stage">
+      <video id="video" playsinline muted></video>
+      <canvas id="overlay"></canvas>
+      <div class="hud-top">
+        <span class="chip" id="hud-exercise" data-state="idle">No exercise yet</span>
+        <span class="hud-status" id="hud-status">Start the camera, step back until your whole body is in view, and start moving.</span>
+      </div>
+      <div class="hud-count">
+        <span class="count" id="hud-count">0</span>
+        <span class="count-label" id="hud-count-label">reps</span>
+      </div>
+      <div class="hud-meter" aria-hidden="true"><span id="hud-meter-fill"></span></div>
+      <div class="hud-rest" id="hud-rest" hidden></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn primary" id="cam-btn">Start camera</button>
+      <button class="btn" id="flip-btn" hidden>Switch camera</button>
+      <label class="btn file-btn">Analyze a video<input type="file" id="file-input" accept="video/*"></label>
+      <span class="demo-group">
+        <select id="demo-select" aria-label="Demo exercise">
+          <option value="squat">Squats</option><option value="pushup">Push-ups</option><option value="curl">Curls</option>
+          <option value="press">Overhead press</option><option value="jack">Jumping jacks</option><option value="plank">Plank</option>
+        </select>
+        <button class="btn" id="demo-btn">Run demo</button>
+      </span>
+      <button class="btn danger" id="stop-btn" hidden>Stop</button>
+    </div>
+    <p class="notice" id="notice" hidden></p>
+
+    <section class="session" aria-labelledby="session-title">
+      <div class="session-head">
+        <div>
+          <h2 id="session-title">Current workout</h2>
+          <p class="meta" id="session-meta">Sets the camera records appear here. You can edit weight and reps.</p>
+        </div>
+        <div class="session-actions">
+          <button class="btn" id="add-set-btn">Add set</button>
+          <button class="btn primary" id="finish-btn" disabled>Finish workout</button>
+        </div>
+      </div>
+      <form class="add-set" id="add-set-form" hidden>
+        <select id="add-ex" aria-label="Exercise"></select>
+        <input id="add-reps" type="number" min="0" inputmode="numeric" placeholder="Reps" aria-label="Reps">
+        <input id="add-weight" type="number" min="0" step="0.5" inputmode="decimal" placeholder="Weight" aria-label="Weight">
+        <button class="btn primary" type="submit">Save set</button>
+      </form>
+      <div id="session-sets"></div>
+      <div class="discard-row" id="discard-row" hidden>
+        <button class="link-btn" id="discard-btn">Discard workout</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- HISTORY -->
+  <main id="view-history" class="view" hidden>
+    <div class="stats" id="stats"></div>
+    <section class="chart-card">
+      <h2>Reps, last 14 days</h2>
+      <div id="chart"></div>
+    </section>
+    <div id="history-list"></div>
+  </main>
+
+  <!-- EXERCISES -->
+  <main id="view-exercises" class="view" hidden>
+    <p class="lead">RepSight recognises these movements from the camera. Each card says how to film it and shows your best set.</p>
+    <div class="ex-grid" id="ex-grid"></div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
