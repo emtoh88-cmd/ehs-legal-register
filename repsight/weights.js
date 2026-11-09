@@ -7,7 +7,9 @@ export const KG_PER_LB = 0.45359237;
 export const toKg = (v, unit) => (unit === 'lb' ? v * KG_PER_LB : v);
 
 // Exercises where a load is usually held. Body-weight moves are not scanned automatically.
-export const LOADED = { curl: 'dumbbell', squat: 'barbell', press: 'barbell' };
+export const LOADED = { curl: 'dumbbell', lunge: 'dumbbell', squat: 'barbell', press: 'barbell', deadlift: 'barbell' };
+// Where a barbell sits when filmed side-on: across the back (squat) or in the hands.
+const BAR_ON_BACK = new Set(['squat']);
 
 const PLATES_KG = [0.5, 1, 1.25, 2, 2.5, 5, 7.5, 10, 15, 20, 25];
 const PLATES_LB = [2.5, 5, 10, 25, 35, 45, 55];
@@ -103,8 +105,10 @@ export function scanRegions(lm, exercise, W, H) {
       const dx = rw.x - lw.x, dy = rw.y - lw.y;
       box(rw.x + dx * 0.45, rw.y + dy * 0.45, fore * 1.8, 'plate', 'R');
       box(lw.x - dx * 0.45, lw.y - dy * 0.45, fore * 1.8, 'plate', 'L');
-    } else if (ls || rs) {
+    } else if (BAR_ON_BACK.has(exercise) && (ls || rs)) {
       const s = ls || rs; box(s.x, s.y - fore * 0.15, fore * 2.2, 'plate', 'side');
+    } else if (lw || rw) {
+      const w = lw || rw; box(w.x, w.y, fore * 2.4, 'plate', 'side'); // plate face centred on the hands
     }
   }
   return dedupe(boxes);

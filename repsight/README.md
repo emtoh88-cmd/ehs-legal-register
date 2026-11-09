@@ -16,7 +16,10 @@ saved in the browser's local storage.
 | Squat          | reps       | side-on or 45°                  |
 | Push-up        | reps       | side-on, camera at floor level  |
 | Bicep curl     | reps       | side-on or facing; alternating arms count separately |
+| Lunge / split squat | reps  | side-on (split stance must be visible) |
+| Deadlift       | reps       | side-on                         |
 | Overhead press | reps       | facing                          |
+| Pull-up        | reps       | facing or from behind, bar in frame |
 | Jumping jack   | reps       | facing                          |
 | Plank          | seconds    | side-on, camera at floor level  |
 
@@ -29,18 +32,23 @@ saved in the browser's local storage.
    (for example, squat knee angle above 155° → below 110° → above 155°). The
    rep only counts if the body position matches that exercise for most of the rep:
    upright for squats, horizontal with straight legs for push-ups, and so on.
-   Half reps and very fast or very slow movements are ignored.
+   Half reps and very fast or very slow movements are ignored. Look-alike
+   movements are separated by what moves: a pull-up raises the shoulders to
+   fixed hands, a press raises the hands from fixed shoulders; a squat keeps the
+   feet together while a lunge splits them; a deadlift hinges with straight-ish knees.
 4. **Auto-tracking:** an exercise is confirmed after 2 matching reps. The set
    ends after a few seconds without a rep (6 s by default; you can change it in
-   Settings), or when 3 reps of a different exercise show up. A rest timer then
+   Settings, and slow lifters get up to 2.5× their own rep pace), or when 3 reps
+   of a different exercise show up. A rest timer then
    runs until the next set starts.
 
 ## Weight scanning
 
-When a loaded exercise (curls, squats, overhead press) is recognised, RepSight
+When a loaded exercise (curls, lunges, squats, deadlifts, overhead press) is recognised, RepSight
 starts looking for the weight while you do your reps. It uses the pose skeleton
-to crop the places a weight can be: your hands for dumbbells, and the bar ends
-(or the bar on your back when you're side-on) for plates.
+to crop the places a weight can be: your hands for dumbbells, and for plates the
+bar ends (facing), the bar on your back (side-on squat) or the bar in your hands
+(side-on deadlift).
 
 | Equipment         | What's read                         | Logged as                         |
 |-------------------|-------------------------------------|-----------------------------------|
@@ -97,7 +105,8 @@ cover OCR slips ("2O KG", "451BS"), noise rejection, voting, crop placement,
 and dumbbell vs. barbell totals.
 
 In the browser, the demos draw labelled equipment, so the curl, squat and press
-demos run the real OCR end to end (12 kg dumbbells, 60 kg and 40 kg barbells).
+demos run the real OCR end to end: 12 kg curls, 10 kg lunges, 60 kg squats and
+deadlifts, a 40 kg press, and no weight for push-ups and pull-ups.
 
 ## Files
 

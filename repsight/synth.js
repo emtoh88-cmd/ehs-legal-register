@@ -15,16 +15,17 @@ function toLandmarks(pts) {
 
 // Side-on figure facing right. Angles in degrees.
 // tilt: torso from vertical; hip/knee/elbow: joint angles; arm: upper arm from straight down.
-export function sidePose({ tilt = 0, hip = 180, knee = 180, arm = 0, elbow = 180, x = 0.5, y = 0.55, scale = 1 } = {}) {
+// hip2/knee2 pose the far leg separately (split stance); they default to the near leg.
+export function sidePose({ tilt = 0, hip = 180, knee = 180, hip2, knee2, arm = 0, elbow = 180, x = 0.5, y = 0.55, scale = 1 } = {}) {
   const hp = { x, y };
   const torso = { x: Math.sin(tilt * D), y: -Math.cos(tilt * D) };
   const sh = add(hp, torso, 0.25 * scale);
-  const thigh = rot(torso, hip), kn = add(hp, thigh, 0.22 * scale);
-  const an = add(kn, rot(neg(thigh), -knee), 0.22 * scale);
+  const leg = (h, k) => { const th = rot(torso, h), kn = add(hp, th, 0.22 * scale); return [kn, add(kn, rot(neg(th), -k), 0.22 * scale)]; };
+  const [kn, an] = leg(hip, knee), [kn2, an2] = leg(hip2 ?? hip, knee2 ?? knee);
   const ua = rot({ x: 0, y: 1 }, -arm), el = add(sh, ua, 0.15 * scale);
   const wr = add(el, rot(neg(ua), elbow), 0.14 * scale);
   const nose = add(add(sh, torso, 0.1 * scale), rot(torso, 90), 0.04 * scale);
-  return toLandmarks({ 0: nose, 11: sh, 12: sh, 13: el, 14: el, 15: wr, 16: wr, 23: hp, 24: hp, 25: kn, 26: kn, 27: an, 28: an });
+  return toLandmarks({ 0: nose, 11: sh, 12: sh, 13: el, 14: el, 15: wr, 16: wr, 23: hp, 24: hp, 25: kn, 26: kn2, 27: an, 28: an2 });
 }
 
 // Facing the camera. abd: arm raised sideways from down (0) to overhead (180);
@@ -65,11 +66,22 @@ export function animate({ pose, top, bottom, reps, periodMs = 1800, restMs = 0, 
   return frames;
 }
 
+// Hanging from a fixed bar: the body moves so the wrists stay put.
+function pullupDemo() {
+  const top = { abd: 168, elbow: 176, scale: 0.8 }, bottom = { abd: 125, elbow: 55, scale: 0.8 };
+  const wristY = p => frontPose({ ...p, y: 0 })[15].y;
+  top.y = 0.62; bottom.y = top.y + wristY(top) - wristY(bottom);
+  return { pose: frontPose, top, bottom, periodMs: 2400 };
+}
+
 export const DEMOS = {
   squat:  { pose: sidePose, top: { tilt: 5, hip: 175, knee: 178, arm: 75, elbow: 175 }, bottom: { tilt: 40, hip: 70, knee: 78, arm: 85, elbow: 175 }, periodMs: 2000 },
   pushup: { pose: sidePose, top: { tilt: 76, hip: 178, knee: 178, arm: 0, elbow: 172, y: 0.6 }, bottom: { tilt: 82, hip: 176, knee: 178, arm: 40, elbow: 75, y: 0.66 }, periodMs: 1600 },
   curl:   { pose: sidePose, top: { tilt: 2, arm: 8, elbow: 170 }, bottom: { tilt: 2, arm: 18, elbow: 38 }, periodMs: 1800 },
   press:  { pose: frontPose, top: { abd: 172, elbow: 176 }, bottom: { abd: 92, elbow: 88 }, periodMs: 2000, startAtBottom: true },
   jack:   { pose: frontPose, top: { abd: 15, legs: 3 }, bottom: { abd: 172, legs: 20 }, periodMs: 900 },
+  lunge:  { pose: sidePose, top: { tilt: 4, hip: 160, knee: 176, hip2: 200, knee2: 176, arm: 0, elbow: 176 }, bottom: { tilt: 8, hip: 95, knee: 92, hip2: 180, knee2: 92, arm: 0, elbow: 176 }, periodMs: 2000 },
+  deadlift: { pose: sidePose, top: { tilt: 3, hip: 178, knee: 176, arm: 0, elbow: 176 }, bottom: { tilt: 72, hip: 100, knee: 140, arm: 0, elbow: 176 }, periodMs: 2600 },
+  pullup: pullupDemo(),
   plank:  { pose: sidePose, top: { tilt: 80, hip: 176, knee: 178, arm: 0, elbow: 92, y: 0.62 }, bottom: { tilt: 80, hip: 176, knee: 178, arm: 0, elbow: 92, y: 0.62 }, periodMs: 1000 },
 };

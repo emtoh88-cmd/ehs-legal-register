@@ -53,6 +53,12 @@ test('scan regions sit on the hands and bar ends', () => {
   const squat = scanRegions(sidePose({ tilt: 5 }), 'squat', W, H);
   assert.ok(squat.some(b => b.role === 'plate'));
   for (const b of [...curl, ...press, ...squat]) assert.ok(b.x >= 0 && b.y >= 0 && b.x + b.w <= W && b.y + b.h <= H);
+  const dl = scanRegions(sidePose({ tilt: 72, hip: 100, knee: 140 }), 'deadlift', W, H);
+  const lw = { x: sidePose({ tilt: 72, hip: 100, knee: 140 })[15].x * W, y: sidePose({ tilt: 72, hip: 100, knee: 140 })[15].y * H };
+  const plate = dl.find(b => b.role === 'plate');
+  assert.ok(plate && lw.x > plate.x && lw.x < plate.x + plate.w && lw.y > plate.y && lw.y < plate.y + plate.h, 'deadlift plate box should cover the hands');
+  assert.equal(resolveWeight({ plate: { kg: 20, value: 20, unit: 'kg' } }, 'deadlift', 20).weightKg, 60);
+  assert.equal(resolveWeight({ hand: { kg: 10, value: 10, unit: 'kg' } }, 'lunge').implement, 'dumbbell');
   assert.deepEqual(scanRegions(null, 'curl', W, H), []);
 });
 

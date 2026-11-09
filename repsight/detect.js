@@ -12,6 +12,12 @@ export const EXERCISES = {
             tip: 'Side-on or facing, upper arms by your sides. Alternating curls count per arm.' },
   press:  { name: 'Overhead Press', kind: 'reps', muscle: 'Shoulders',
             tip: 'Facing the camera, start with hands at shoulders, lock out overhead.' },
+  lunge:  { name: 'Lunge',          kind: 'reps', muscle: 'Legs',
+            tip: 'Side-on, whole body in frame. Each leg counts; front knee past ~110°.' },
+  deadlift: { name: 'Deadlift',     kind: 'reps', muscle: 'Back',
+            tip: 'Side-on, bar and whole body in frame. Counts a hip hinge down and a full lockout.' },
+  pullup: { name: 'Pull-up',        kind: 'reps', muscle: 'Back',
+            tip: 'Facing or behind you, bar and hands in frame. Counts from straight arms to elbows past ~80°.' },
   jack:   { name: 'Jumping Jack',   kind: 'reps', muscle: 'Cardio',
             tip: 'Facing the camera, full body in frame. Hands overhead and feet wide counts one.' },
   plank:  { name: 'Plank',          kind: 'hold', muscle: 'Core',
@@ -73,8 +79,18 @@ export function computeFeatures(lm, aspect = 1) {
   const shW = ok('ls', 'rs') ? Math.abs(P.ls.x - P.rs.x) : 0;
   const spread = ok('la', 'ra') && shW > tl * 0.25 ? Math.abs(P.la.x - P.ra.x) / shW : null;
 
+  // side-on vs facing, from how far apart the hips look; split stance for lunges
+  const hipSep = ok('lh', 'rh') ? Math.abs(P.lh.x - P.rh.x) : 0;
+  const sideOn = hipSep < tl * 0.35;
+  const thigh = mean([ok('lh', 'lk') ? Math.hypot(P.lh.x - P.lk.x, P.lh.y - P.lk.y) : null, ok('rh', 'rk') ? Math.hypot(P.rh.x - P.rk.x, P.rh.y - P.rk.y) : null]);
+  const stance = ok('la', 'ra') && thigh ? Math.abs(P.la.x - P.ra.x) / thigh : null;
+  // heights in torso lengths, so travel can be compared across camera distances
+  const shY = sh.y / tl, wrY = wrists.length ? mean(wrists.map(w => w.y)) / tl : null;
+  const wristsAboveShoulders = wrists.length === 2 && wrists.every(w => w.y < sh.y);
+
   return {
-    visible: true, tilt, torso: tl,
+    visible: true, tilt, torso: tl, sideOn, stance, shY, wrY, wristsAboveShoulders,
+    kneeMin: kneeL == null ? kneeR : kneeR == null ? kneeL : Math.min(kneeL, kneeR),
     elbowL, elbowR, elbow: mean([elbowL, elbowR]),
     kneeL, kneeR, knee: mean([kneeL, kneeR]),
     hip: mean([hipL, hipR]), armL, armR,
@@ -85,33 +101,46 @@ export function computeFeatures(lm, aspect = 1) {
 // Hysteresis rep counter: a rep is top -> bottom -> top, with the exercise's
 // context (body position) holding for most of the rep.
 class RepCounter {
-  constructor({ signal, isTop, isBottom, context, minMs = 350, maxMs = 10000, minCtx = 0.7 }) {
-    Object.assign(this, { signal, isTop, isBottom, context, minMs, maxMs, minCtx });
+  constructor({ signal, isTop, isBottom, context, minMs = 350, maxMs = 10000, minCtx = 0.7, track = null, accept = null }) {
+    Object.assign(this, { signal, isTop, isBottom, context, minMs, maxMs, minCtx, track, accept });
+    this.ranges = {};
     this.state = null; this.reps = 0; this.repStart = 0; this.ctxYes = 0; this.ctxAll = 0; this.value = null;
   }
   update(f, t) {
     const v = this.signal(f); this.value = v;
     if (v == null) return false;
     const ctx = !!this.context(f);
-    if (this.state === 'down' || this.state === 'leaving') { this.ctxAll++; if (ctx) this.ctxYes++; }
+    if (this.state === 'down' || this.state === 'leaving') { this.ctxAll++; if (ctx) this.ctxYes++; this.observe(f); }
     if (this.isTop(v, f)) {
       if (this.state === 'down') {
         const dur = t - this.repStart, ratio = this.ctxAll ? this.ctxYes / this.ctxAll : 0;
         this.state = 'up';
-        if (dur >= this.minMs && dur <= this.maxMs && ratio >= this.minCtx) { this.reps++; return true; }
+        const travel = Object.fromEntries(Object.entries(this.ranges).map(([k, r]) => [k, r[1] - r[0]]));
+        if (dur >= this.minMs && dur <= this.maxMs && ratio >= this.minCtx && (!this.accept || this.accept(travel))) { this.reps++; return true; }
         return false;
       }
       this.state = 'up';
     } else if (this.state === 'up') {
-      this.state = 'leaving'; this.repStart = t; this.ctxYes = ctx ? 1 : 0; this.ctxAll = 1;
+      this.state = 'leaving'; this.repStart = t; this.ctxYes = ctx ? 1 : 0; this.ctxAll = 1; this.ranges = {}; this.observe(f);
     }
     if (this.state === 'leaving' && this.isBottom(v, f)) this.state = 'down';
     // starting a set in the bottom position (e.g. press from the rack) still counts the first rep
-    if (this.state === null && this.isBottom(v, f)) { this.state = 'down'; this.repStart = t; this.ctxYes = ctx ? 1 : 0; this.ctxAll = 1; }
+    if (this.state === null && this.isBottom(v, f)) { this.state = 'down'; this.repStart = t; this.ctxYes = ctx ? 1 : 0; this.ctxAll = 1; this.ranges = {}; this.observe(f); }
     return false;
+  }
+  // min/max of tracked values over the current rep (e.g. how far the shoulders moved)
+  observe(f) {
+    if (!this.track) return;
+    for (const [k, v] of Object.entries(this.track(f))) {
+      if (v == null) continue;
+      const r = this.ranges[k]; if (!r) this.ranges[k] = [v, v]; else { if (v < r[0]) r[0] = v; if (v > r[1]) r[1] = v; }
+    }
   }
   get phase() { return this.state === 'down' ? 'bottom' : this.state === 'up' ? 'top' : this.state === 'leaving' ? 'moving' : 'waiting'; }
 }
+
+const splitStance = f => f.sideOn && f.stance != null && f.stance > 1.2;
+const travelTrack = f => ({ sh: f.shY, wr: f.wrY });
 
 function makeDetectors() {
   const upright = f => f.tilt != null && f.tilt < 35;
@@ -123,7 +152,21 @@ function makeDetectors() {
   return {
     squat: new RepCounter({
       signal: f => f.knee, isTop: v => v > 155, isBottom: v => v < 110,
-      context: f => f.tilt != null && f.tilt < 60,
+      context: f => f.tilt != null && f.tilt < 60 && !splitStance(f),
+    }),
+    lunge: new RepCounter({
+      signal: f => f.kneeMin, isTop: v => v > 150, isBottom: v => v < 110,
+      context: f => f.tilt != null && f.tilt < 45 && splitStance(f), minCtx: 0.6,
+    }),
+    deadlift: new RepCounter({
+      signal: f => f.hip, isTop: v => v > 160, isBottom: v => v < 115,
+      // hinge: knees stay fairly straight (unlike a squat), arms hang straight, shoulders stay above hips
+      context: f => f.tilt != null && f.tilt < 85 && (f.knee == null || f.knee > 115) && (f.elbow == null || f.elbow > 140),
+    }),
+    pullup: new RepCounter({
+      signal: f => f.elbow, isTop: v => v > 150, isBottom: v => v < 80,
+      context: f => f.tilt != null && f.tilt < 35 && f.wristsAboveShoulders,
+      track: travelTrack, accept: t => (t.sh ?? 0) > (t.wr ?? 0) + 0.1, // the body rises to the hands
     }),
     pushup: new RepCounter({
       signal: f => f.elbow, isTop: v => v > 145, isBottom: v => v < 100,
@@ -136,6 +179,7 @@ function makeDetectors() {
       isTop: (v, f) => v > 150 && Math.max(f.armL ?? 0, f.armR ?? 0) > 130,
       isBottom: v => v < 105,
       context: f => upright(f) && (f.wristUpL ?? true) && (f.wristUpR ?? true) && (f.wristUpL != null || f.wristUpR != null),
+      track: travelTrack, accept: t => (t.wr ?? 0) > (t.sh ?? 0), // the hands rise from the shoulders
     }),
     jack: new RepCounter({
       signal: f => (f.spread == null ? null : f.wristsOverhead && f.spread > 1.3 ? 1 : f.wristsLow && f.spread < 1.15 ? -1 : 0),
@@ -191,7 +235,7 @@ export function createTracker({ idleMs = 6000, confirmReps = 2, switchReps = 3, 
 
   function onRep(ex, t, events) {
     if (active && active.exercise === ex) {
-      active.reps++; active.lastRepAt = t;
+      active.gaps.push(t - active.lastRepAt); active.reps++; active.lastRepAt = t;
       events.push({ type: 'rep', exercise: ex, reps: active.reps });
       return;
     }
@@ -199,7 +243,7 @@ export function createTracker({ idleMs = 6000, confirmReps = 2, switchReps = 3, 
     const need = active ? switchReps : confirmReps;
     if (c.length >= need) {
       endSet(t, events, 'switched');
-      active = { exercise: ex, kind: 'reps', reps: c.length, startedAt: c[0], lastRepAt: t };
+      active = { exercise: ex, kind: 'reps', reps: c.length, startedAt: c[0], lastRepAt: t, gaps: c.slice(1).map((x, i) => x - c[i]) };
       for (const k in cand) cand[k] = [];
       events.push({ type: 'set-start', exercise: ex, reps: active.reps });
       events.push({ type: 'rep', exercise: ex, reps: active.reps });
@@ -218,6 +262,9 @@ export function createTracker({ idleMs = 6000, confirmReps = 2, switchReps = 3, 
     lastFeatures = f;
 
     if (det.squat.update(f, t)) onRep('squat', t, events);
+    if (det.lunge.update(f, t)) onRep('lunge', t, events);
+    if (det.deadlift.update(f, t)) onRep('deadlift', t, events);
+    if (det.pullup.update(f, t)) onRep('pullup', t, events);
     if (det.pushup.update(f, t)) onRep('pushup', t, events);
     if (det.press.update(f, t)) onRep('press', t, events);
     if (det.jack.update(f, t)) onRep('jack', t, events);
@@ -244,8 +291,14 @@ export function createTracker({ idleMs = 6000, confirmReps = 2, switchReps = 3, 
     return events;
   }
 
+  // slow lifts (deadlifts, paused reps) get more time: 2.5x the lifter's own pace, at least idleMs
+  function idleLimit(a) {
+    const g = a.gaps.length ? a.gaps.reduce((x, y) => x + y, 0) / a.gaps.length : 0;
+    return Math.max(idleMs, 2.5 * g);
+  }
+
   function tick(t, events) {
-    if (active && active.kind === 'reps' && t - active.lastRepAt > idleMs) endSet(t, events, 'idle');
+    if (active && active.kind === 'reps' && t - active.lastRepAt > idleLimit(active)) endSet(t, events, 'idle');
   }
 
   return {

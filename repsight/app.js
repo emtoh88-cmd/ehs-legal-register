@@ -196,6 +196,9 @@ function meterValue(f, ex) {
   const norm = (v, top, bottom) => (v == null ? 0 : Math.max(0, Math.min(1, (top - v) / (top - bottom))));
   switch (ex) {
     case 'squat': return norm(f.knee, 170, 90);
+    case 'lunge': return norm(f.kneeMin, 170, 90);
+    case 'deadlift': return norm(f.hip, 175, 95);
+    case 'pullup': return norm(f.elbow, 170, 60);
     case 'pushup': case 'press': return norm(f.elbow, 170, 85);
     case 'curl': return norm(Math.min(f.elbowL ?? 180, f.elbowR ?? 180), 165, 45);
     case 'jack': return f.spread == null ? 0 : Math.max(0, Math.min(1, (f.spread - 0.8) / 1.2));
@@ -238,9 +241,13 @@ function drawFigure(c, lm, P, lw) {
 }
 
 // Demo equipment, drawn with printed labels so the scanner has something real to read.
-const DEMO_LOADS = { curl: { kind: 'dumbbell', label: '12 KG' }, squat: { kind: 'plate', label: '20 KG' }, press: { kind: 'bar', label: '10 KG' } };
+const DEMO_LOADS = { curl: { kind: 'dumbbell', label: '12 KG' }, lunge: { kind: 'dumbbell', label: '10 KG' }, squat: { kind: 'plate', label: '20 KG' }, deadlift: { kind: 'plate-hands', label: '20 KG' }, press: { kind: 'bar', label: '10 KG' } };
 let demoExercise = null;
 function drawLoad(c, lm, P, ex) {
+  if (ex === 'pullup') { // the bar the demo figure hangs from
+    const [lx, ly] = P(15), [rx, ry] = P(16), y = (ly + ry) / 2, d = Math.abs(rx - lx);
+    c.strokeStyle = '#9aa0aa'; c.lineWidth = 6; c.beginPath(); c.moveTo(lx - d, y); c.lineTo(rx + d, y); c.stroke(); return;
+  }
   const load = DEMO_LOADS[ex]; if (!load) return;
   const [ex1, ey1] = P(13), [wx, wy] = P(15), u = Math.hypot(wx - ex1, wy - ey1) || 40;
   const label = (x, y, size, fg = '#fff') => { c.fillStyle = fg; c.font = `700 ${Math.round(size)}px Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(load.label, x, y); };
@@ -254,6 +261,8 @@ function drawLoad(c, lm, P, ex) {
     }
   } else if (load.kind === 'plate') {
     const [sx, sy] = P(11); disc(sx, sy, u * 0.75); label(sx, sy, u * 0.3);
+  } else if (load.kind === 'plate-hands') {
+    disc(wx, wy, u * 0.8); label(wx, wy, u * 0.3);
   } else {
     const [lx, ly] = P(15), [rx, ry] = P(16), dx = rx - lx, dy = ry - ly;
     c.strokeStyle = '#9aa0aa'; c.lineWidth = u * 0.08; c.beginPath(); c.moveTo(lx - dx * 0.75, ly - dy * 0.75); c.lineTo(rx + dx * 0.75, ry + dy * 0.75); c.stroke();

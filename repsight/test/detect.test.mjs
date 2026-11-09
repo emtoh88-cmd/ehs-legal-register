@@ -11,7 +11,7 @@ function run(frames, opts) {
 }
 const demo = (ex, reps, extra = {}) => animate({ ...DEMOS[ex], reps, restMs: 1000, ...extra });
 
-for (const [ex, reps] of [['squat', 10], ['pushup', 12], ['curl', 8], ['press', 6], ['jack', 15]]) {
+for (const [ex, reps] of [['squat', 10], ['pushup', 12], ['curl', 8], ['press', 6], ['jack', 15], ['lunge', 8], ['deadlift', 6], ['pullup', 6]]) {
   test(`${ex}: recognises the exercise and counts ${reps} reps`, () => {
     const sets = run(demo(ex, reps));
     assert.equal(sets.length, 1, JSON.stringify(sets));
@@ -64,4 +64,26 @@ test('missing landmarks are tolerated', () => {
   const tr = createTracker();
   assert.deepEqual(tr.update(null, 0), []);
   assert.deepEqual(tr.update(Array.from({ length: 33 }, () => ({ x: 0, y: 0, visibility: 0.1 })), 33), []);
+});
+
+test('no other exercise is even suspected during each demo', () => {
+  for (const ex of Object.keys(DEMOS).filter(k => k !== 'plank')) {
+    const tr = createTracker(); const seen = new Set();
+    for (const f of demo(ex, 6)) for (const e of tr.update(f.lm, f.t)) if (e.exercise) seen.add(e.exercise);
+    assert.deepEqual([...seen], [ex], `${ex} demo also looked like ${[...seen].filter(x => x !== ex)}`);
+  }
+});
+
+test('pull-ups and presses are told apart by what moves', async () => {
+  // same arm angles, but in a pull-up the shoulders travel and the hands stay on the bar
+  const { frontPose } = await import('../synth.js');
+  const fixedBody = animate({ pose: frontPose, top: DEMOS.pullup.top, bottom: { ...DEMOS.pullup.bottom, y: DEMOS.pullup.top.y }, reps: 6, restMs: 1000 });
+  const sets = run(fixedBody);
+  assert.ok(!sets.some(s => s.exercise === 'pullup'), JSON.stringify(sets));
+});
+
+test('slow reps stay in one set even with a short timeout', () => {
+  // 4.5 s per deadlift rep, timeout set to 4 s: the pace-based limit keeps it one set
+  const sets = run(animate({ ...DEMOS.deadlift, reps: 5, periodMs: 4500, restMs: 1000 }), { idleMs: 4000 });
+  assert.deepEqual(sets.map(s => [s.exercise, s.reps]), [['deadlift', 5]]);
 });
